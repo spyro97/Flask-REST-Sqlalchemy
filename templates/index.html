@@ -1,0 +1,16 @@
+<html>
+  <head>
+    {% if titulo %}
+    <title>{{ titulo }} - Mi web de prototipado</title>
+    {% else %}
+    <title>Bienvenido a mi web de prototipado</title>
+    {% endif %}
+  </head>
+  <body>
+      <img src='https://upload.wikimedia.org/wikipedia/commons/thumb/0/04/MarvelLogo.svg/1200px-MarvelLogo.svg.png'>
+      <h1>Hola, {{ usuario.nombre }}!</h1>
+      {% for user in usuarios %}
+      <h1>Hola, {{ user.nombre }}!</h1>
+      {% endfor %}
+  </body>
+</html>
