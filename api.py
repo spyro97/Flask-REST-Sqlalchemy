@@ -1,20 +1,48 @@
 import pyodbc
 import json
+import urllib
 from flask import Flask, jsonify, request, render_template
+from flask_sqlalchemy import SQLAlchemy
 from products import products
+
 
 app = Flask(__name__)
 
-#Conecion a la base de datos
-conn = pyodbc.connect(
-    "Driver={SQL Server Native Client 11.0};"
-    "Server=172.16.1.108;"
-    "Database=prueba;"
+params = urllib.parse.quote_plus(
+    "DRIVER={SQL Server Native Client 10.0};"
+    "SERVER=172.16.1.108;"
+    "DATABASE=prueba;"
     "UID=sa;"
-    "PWD=Dsdsistemas2012"  
-    )
+    "PWD=Dsdsistemas2012")
 
-#Obtener productos de la base de datos
+databse_uri = 'mssql+pyodbc:///?odbc_connect=DRIVER%3D%7BODBC+Driver+13+for+SQL+Server%7D%3BServer%3D172.16.1.108%3BDatabase%3Dprueba%3BUID%3Dsa%3BPWD%3DDsdsistemas2012%3BPort%3D1433%3BTrusted_Connection%3Dno%3B'
+app.config["SQLALCHEMY_DATABASE_URI"] = databse_uri
+db = SQLAlchemy(app)
+
+@app.route("/users")
+def users():
+    from models.models import User
+    users = User.query.all()
+    print(users)
+    user_data = []
+    for userr in users:
+        user_data.append(userr.to_json())
+    return jsonify({"usuarios":user_data})
+
+@app.route("/user", methods=['POST'])
+def add_user():
+    from models.models import User
+    data = {
+        "username": request.json['username'],
+        "email": request.json['email']
+    }
+    new_user = User(**data)
+    db.session.add(new_user)
+    db.session.commit()
+    return jsonify({'data': new_user.to_json()})
+
+
+
 @app.route("/productsdb", methods=['GET'])
 def read2():
     print("Lectura")
@@ -106,6 +134,7 @@ def hello_world():
 
 #Ejecutar Servicio/Servidor
 if __name__ == '__main__':
+    print(params)
     app.run(debug=True, port=4000)
 
 
