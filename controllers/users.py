@@ -35,10 +35,26 @@ class UserController(Resource):
         
 
     def put(self, pk):
-        pass
+        user = User.query.get(pk)
+        if not user:
+            return {"mensaje":"No se encontro el usuario"}, 404
+        data = {
+           "username": request.json['username'],
+            "email": request.json['email']
+        }
+        user.email = data["email"]
+        user.username = data["username"]
+        db.session.add(user)
+        db.session.commit()
+        return {"usuarios": user.to_json(),"mensaje":"actualizado"}
 
     def delete(self,pk):
-        pass
+            user = User.query.get(pk)
+            if not user:
+                return {"mensaje":"No se encontro el usuario"}
+            db.session.delete(user)
+            db.session.commit()
+            return {"usuario": user.to_json(),"mensaje":"liminado"}
 
     
 
