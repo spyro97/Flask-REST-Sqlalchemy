@@ -1,12 +1,16 @@
 import pyodbc
 import json
 import urllib
+import os
+import requests
+from sqlalchemy import inspect
 from flask import Flask, jsonify, request, render_template
 from flask_sqlalchemy import SQLAlchemy
 from products import products
 
 
 app = Flask(__name__)
+
 
 params = urllib.parse.quote_plus(
     "DRIVER={SQL Server Native Client 10.0};"
@@ -19,19 +23,42 @@ databse_uri = 'mssql+pyodbc:///?odbc_connect=DRIVER%3D%7BODBC+Driver+13+for+SQL+
 app.config["SQLALCHEMY_DATABASE_URI"] = databse_uri
 db = SQLAlchemy(app)
 
+class User(db.Model):
+    __tablename__ = 'users'
+    id = db.Column(db.Integer, primary_key=True)
+    username = db.Column(db.String, unique=True, nullable=False)
+    email = db.Column(db.String, unique=True, nullable=False)
+
+    def __init__(self,username, email):
+        self.username = username
+        self.email = email
+
+    #Schema Product
+    
+    def to_json(self):
+        return {c.key: getattr(self, c.key)
+                for c in inspect(self).mapper.column_attrs}
+
 @app.route("/users")
 def users():
-    from models.models import User
+    #from models.models import User
     users = User.query.all()
-    print(users)
     user_data = []
     for userr in users:
         user_data.append(userr.to_json())
     return jsonify({"usuarios":user_data})
 
+@app.route("/users/<int:id>", methods=['GET'])
+def get_single_user(id):
+    #from models.models import User
+    user = User.query.get(id)
+    single_user = []
+    single_user.append(user.to_json())
+    return jsonify({"usuario":single_user})
+
 @app.route("/user", methods=['POST'])
 def add_user():
-    from models.models import User
+    #from models.models import User
     data = {
         "username": request.json['username'],
         "email": request.json['email']
@@ -40,6 +67,31 @@ def add_user():
     db.session.add(new_user)
     db.session.commit()
     return jsonify({'data': new_user.to_json()})
+
+
+@app.route("/users/<id>", methods=['PUT'])
+def modifly_user(id):
+    #from models.models import User
+    user = User.query.get(id)
+    print(user.to_json())
+    data = {
+        "username": request.json['username'],
+        "email": request.json['email']
+    }
+    user.email = data["email"]
+    user.username = data["username"]
+    db.session.add(user)
+    db.session.commit()
+    print(user.email)
+    print(user.username)
+    return jsonify({"message": user.to_json()})
+
+@app.route("/users/<id>", methods=['DELETE'])
+def delete_user(id):
+    user = User.query.get(id)
+    db.session.delete(user)
+    db.session.commit()
+    return jsonify({"message": user.to_json()})
 
 
 
