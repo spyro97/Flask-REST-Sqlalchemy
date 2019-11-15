@@ -1,8 +1,7 @@
 from flask import Flask
 from flask_sqlalchemy import SQLAlchemy
 from sqlalchemy import inspect
-from api import db
-import os
+from extensions import db
 
 
 class User(db.Model):

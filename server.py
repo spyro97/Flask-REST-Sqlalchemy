@@ -3,27 +3,18 @@ import json
 import urllib
 import os
 import requests
-from sqlalchemy import inspect
 from flask import Flask, jsonify, request, render_template
-from flask_sqlalchemy import SQLAlchemy
 from products import products
+from extensions import db
+from urls import blueprint_urls
 
 
 app = Flask(__name__)
 
-
-params = urllib.parse.quote_plus(
-    "DRIVER={SQL Server Native Client 10.0};"
-    "SERVER=172.16.1.108;"
-    "DATABASE=prueba;"
-    "UID=sa;"
-    "PWD=Dsdsistemas2012")
-
 databse_uri = 'mssql+pyodbc:///?odbc_connect=DRIVER%3D%7BODBC+Driver+13+for+SQL+Server%7D%3BServer%3D172.16.1.108%3BDatabase%3Dprueba%3BUID%3Dsa%3BPWD%3DDsdsistemas2012%3BPort%3D1433%3BTrusted_Connection%3Dno%3B'
 app.config["SQLALCHEMY_DATABASE_URI"] = databse_uri
-db = SQLAlchemy(app)
 
-class User(db.Model):
+'''class User(db.Model):
     __tablename__ = 'users'
     id = db.Column(db.Integer, primary_key=True)
     username = db.Column(db.String, unique=True, nullable=False)
@@ -38,35 +29,9 @@ class User(db.Model):
     def to_json(self):
         return {c.key: getattr(self, c.key)
                 for c in inspect(self).mapper.column_attrs}
+'''
 
-@app.route("/users")
-def users():
-    #from models.models import User
-    users = User.query.all()
-    user_data = []
-    for userr in users:
-        user_data.append(userr.to_json())
-    return jsonify({"usuarios":user_data})
 
-@app.route("/users/<int:id>", methods=['GET'])
-def get_single_user(id):
-    #from models.models import User
-    user = User.query.get(id)
-    single_user = []
-    single_user.append(user.to_json())
-    return jsonify({"usuario":single_user})
-
-@app.route("/user", methods=['POST'])
-def add_user():
-    #from models.models import User
-    data = {
-        "username": request.json['username'],
-        "email": request.json['email']
-    }
-    new_user = User(**data)
-    db.session.add(new_user)
-    db.session.commit()
-    return jsonify({'data': new_user.to_json()})
 
 
 @app.route("/users/<id>", methods=['PUT'])
@@ -184,10 +149,6 @@ def hello_world():
         usuarios=users
         )
 
-#Ejecutar Servicio/Servidor
-if __name__ == '__main__':
-    print(params)
-    app.run(debug=True, port=4000)
-
-
-
+app.register_blueprint(blueprint_urls)
+db.init_app(app)
+print(db)
