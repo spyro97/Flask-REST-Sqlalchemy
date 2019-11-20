@@ -15,4 +15,4 @@ app.config["SQLALCHEMY_DATABASE_URI"] = databse_uri
 
 app.register_blueprint(blueprint_urls)
 db.init_app(app)
-print(db)
+

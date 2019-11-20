@@ -1,16 +1,14 @@
 from flask_restful import Resource, request
 from models.models import User
 from extensions import db
+from serializers.users import users_schema, user_schema
 
 
 class UserListController(Resource):
     
     def get(self):
         users = User.query.all()
-        user_data = []
-        for userr in users:
-            user_data.append(userr.to_json())
-        return {"data": user_data, "message": "exito"}
+        return {"data": users_schema.dump(users), "message": "exito"}
 
     def post(self):
         data = {
@@ -20,7 +18,7 @@ class UserListController(Resource):
         new_user = User(**data)
         db.session.add(new_user)
         db.session.commit()
-        return {'data': new_user.to_json()}
+        return {'data': user_schema.dump(new_user)}
 
 
 class UserController(Resource):
@@ -31,7 +29,7 @@ class UserController(Resource):
             return {"Mensaje":"No se encontro el usuario"}, 404
         single_user = []
         single_user.append(user.to_json())
-        return {"usuario":single_user}
+        return {'usuario':user_schema.dump(user)}
         
 
     def put(self, pk):
@@ -46,7 +44,7 @@ class UserController(Resource):
         user.username = data["username"]
         db.session.add(user)
         db.session.commit()
-        return {"usuarios": user.to_json(),"mensaje":"actualizado"}
+        return {"usuario": user_schema.dump(user),"mensaje":"actualizado"}
 
     def delete(self,pk):
             user = User.query.get(pk)
@@ -54,7 +52,7 @@ class UserController(Resource):
                 return {"mensaje":"No se encontro el usuario"}
             db.session.delete(user)
             db.session.commit()
-            return {"usuario": user.to_json(),"mensaje":"liminado"}
+            return {"usuario": user_schema.dump(user),"mensaje":"Eliminado"}
 
     
 

@@ -14,7 +14,6 @@ class User(db.Model):
         self.username = username
         self.email = email
 
-    #Schema Product
     
     def to_json(self):
         return {c.key: getattr(self, c.key)
